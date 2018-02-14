@@ -1,0 +1,17 @@
+[
+  {
+    "inputFields": [
+      {"xpath": "//input[@name='loginfmt']", "value": "nicholas.dipiazza@fudgeunlimited.onmicrosoft.com"}
+    ],
+    "submitButtonXPath": "//input[@id='idSIButton9']"
+  },
+  {
+    "inputFields": [
+      {"xpath": "//input[@name='passwd']", "value": "$$PASSWORD$$password"}
+    ],
+    "submitButtonXPath": "//input[@id='idSIButton9']"
+  },
+  {
+    "submitButtonXPath": "//input[@id='idBtn_Back']"
+  }
+]
