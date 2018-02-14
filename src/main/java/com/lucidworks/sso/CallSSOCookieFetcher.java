@@ -44,6 +44,7 @@ public class CallSSOCookieFetcher {
     new Thread(() -> {
       Scanner scanner = new Scanner(stdout);
       while (scanner.hasNextLine()) {
+        System.out.println("STDOUT: " + scanner.nextLine());
         stdoutList.add(scanner.nextLine());
       }
       scanner.close();
@@ -62,6 +63,15 @@ public class CallSSOCookieFetcher {
     writer.write(FileUtils.readFileToString(new File("input.json")));
     writer.flush();
 
-    process.waitFor();
+    int exitCode = process.waitFor();
+
+    if (exitCode != 0) {
+      throw new Exception("Could not get generic sso cookies. Check previous logs");
+    }
+
+    System.out.println("Cookies");
+    for (String cookie : stdoutList) {
+      System.out.println(cookie);
+    }
   }
 }

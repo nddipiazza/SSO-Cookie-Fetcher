@@ -111,8 +111,8 @@ public class SSOCookieFetcher {
       }
     }
 
-    settingsBuilder.ajaxWait(30000L);
-    settingsBuilder.socketTimeout(30000);
+    settingsBuilder.ajaxWait(40000L);
+    settingsBuilder.socketTimeout(40000);
     settingsBuilder.blockAds(true);
     settingsBuilder.quickRender(true);
     settingsBuilder.userAgent(UserAgent.CHROME);
@@ -172,7 +172,7 @@ public class SSOCookieFetcher {
         }
       }
       for (Cookie c : driver.manage().getCookies()) {
-        System.out.println("COOKIE;;;" + c.getName() + ";;;" + c.getValue());
+        System.out.println(c.getName() + ";;;" + c.getValue());
       }
     } finally {
       System.err.println("Quitting jbrowserdriver process...");
