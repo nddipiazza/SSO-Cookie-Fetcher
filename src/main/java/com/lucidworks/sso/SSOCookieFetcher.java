@@ -51,14 +51,21 @@ public class SSOCookieFetcher {
     parser.parseArgument(args);
 
     int retryCount = 6;
+    Exception failed = null;
     while (retryCount-- > 0) {
       try {
         doSteps();
+        failed = null;
         break;
       } catch (Exception e) {
-        System.out.println("Failed due to exception. Retries remaining " + retryCount);
-        e.printStackTrace();
+        failed = e;
+        //System.out.println("Failed due to exception. Retries remaining " + retryCount);
+        //e.printStackTrace();
       }
+    }
+    if (failed != null) {
+      failed.printStackTrace();
+      System.exit(1);
     }
   }
 
@@ -91,7 +98,7 @@ public class SSOCookieFetcher {
           throw new Exception("Invalid proxy port: '" + proxyParts[1] + "'", e);
         }
         if (httpHost != null && httpPort != null) {
-          System.out.println("Using proxy host = " + httpHost + ", " + httpPort);
+          //System.out.println("Using proxy host = " + httpHost + ", " + httpPort);
           settingsBuilder.proxy(new ProxyConfig(ProxyConfig.Type.HTTP, httpHost, httpPort));
         }
       }
