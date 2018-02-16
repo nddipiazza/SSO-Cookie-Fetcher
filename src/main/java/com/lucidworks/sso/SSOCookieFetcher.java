@@ -28,6 +28,20 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Fetch cookies from a generic website after performing some "login steps"
+ * <p>
+ * Example input format: https://raw.githubusercontent.com/nddipiazza/SSO-Cookie-Fetcher/master/input.json
+ * <p>
+ * It will print all logging info to stderr
+ * <p>
+ * It will print the cookies in format cookieName;;;cookieValue to the stdout.
+ * <p>
+ * See https://raw.githubusercontent.com/nddipiazza/SSO-Cookie-Fetcher/master/src/main/java/com/lucidworks/sso
+ * /CallSSOCookieFetcher.java
+ * <p>
+ * For an example of how to call this from a Java class.
+ */
 public class SSOCookieFetcher {
   private static ObjectMapper MAPPER = new ObjectMapper();
 
@@ -46,6 +60,18 @@ public class SSOCookieFetcher {
   @Option(name = "--attemptTimeLimiter", usage = "Limit attempts to this many seconds")
   private int attemptTimeLimiter = 5 * 60;
 
+  @Option(name = "--socketTimeout", usage = "Jbrowserdriver's socket timeout parameter.")
+  private int socketTimeout = 10000;
+
+  @Option(name = "--ajaxWait", usage = "Jbrowserdriver's ajax wait parameter.")
+  private long ajaxWait = 10000L;
+
+  @Option(name = "--screenWidth", usage = "Jbrowserdriver's browser window screen width.")
+  private int screenWidth = 800;
+
+  @Option(name = "--screenHeight", usage = "Jbrowserdriver's browser window screen height.")
+  private int screenHeight = 800;
+
   public static void main(String[] args) throws Exception {
     new SSOCookieFetcher().runProcess(args);
   }
@@ -57,6 +83,8 @@ public class SSOCookieFetcher {
     parser.setUsageWidth(80);
 
     parser.parseArgument(args);
+
+    JsonNode stepsJson = MAPPER.readTree(System.in);
 
     Retryer retryer = RetryerBuilder.newBuilder()
         .withStopStrategy(StopStrategies.stopAfterAttempt(stopAfterAttempt))
@@ -73,13 +101,12 @@ public class SSOCookieFetcher {
           }
         }).build();
     retryer.call(() -> {
-      doSteps();
+      doSteps(stepsJson);
       return true;
     });
   }
 
-  private void doSteps() throws Exception {
-    JsonNode stepsJson = MAPPER.readTree(System.in);
+  private void doSteps(JsonNode stepsJson) throws Exception {
     Settings.Builder settingsBuilder = Settings.builder();
     settingsBuilder.timezone(Timezone.AMERICA_NEWYORK);
 
@@ -111,8 +138,8 @@ public class SSOCookieFetcher {
       }
     }
 
-    settingsBuilder.ajaxWait(40000L);
-    settingsBuilder.socketTimeout(40000);
+    settingsBuilder.ajaxWait(ajaxWait);
+    settingsBuilder.socketTimeout(socketTimeout);
     settingsBuilder.blockAds(true);
     settingsBuilder.quickRender(true);
     settingsBuilder.userAgent(UserAgent.CHROME);
@@ -123,9 +150,10 @@ public class SSOCookieFetcher {
 
       System.err.println("Loaded " + url);
 
-      driver.manage().window().setSize(new Dimension(800, 800));
+      driver.manage().window().setSize(new Dimension(screenWidth, screenHeight));
 
-      new WebDriverWait(driver, 60, 250).until(wd -> ((JavascriptExecutor) wd).executeScript("return document.readyState").equals("complete"));
+      new WebDriverWait(driver, ajaxWait / 1000, 250).until(wd -> ((JavascriptExecutor) wd).executeScript("return " +
+          "document.readyState").equals("complete"));
       int screenshotIndex = 0;
       for (JsonNode nextStep : stepsJson) {
         ++screenshotIndex;
@@ -161,7 +189,8 @@ public class SSOCookieFetcher {
           }
           System.err.println("Submitting button " + nextStep.get("submitButtonXPath").asText());
           driver.findElement(By.xpath(nextStep.get("submitButtonXPath").asText())).click();
-          new WebDriverWait(driver, 60, 250).until(wd -> ((JavascriptExecutor) wd).executeScript("return document.readyState").equals("complete"));
+          new WebDriverWait(driver, ajaxWait / 1000, 250).until(wd -> ((JavascriptExecutor) wd).executeScript("return document" +
+              ".readyState").equals("complete"));
           if (takeScreenshots) {
             byte[] screenshot = driver.getScreenshotAs(OutputType.BYTES);
             Files.write(Paths.get("screenshot-afterclick-" + screenshotIndex + ".png"), screenshot);
@@ -173,10 +202,13 @@ public class SSOCookieFetcher {
       }
       for (Cookie c : driver.manage().getCookies()) {
         System.out.println(c.getName() + ";;;" + c.getValue());
+        System.err.println("Got cookie: " + c.getName());
       }
     } finally {
       System.err.println("Quitting jbrowserdriver process...");
       driver.quit();
     }
+    System.err.println("Success! Exiting with status code = 0.");
+    System.exit(0);
   }
 }
