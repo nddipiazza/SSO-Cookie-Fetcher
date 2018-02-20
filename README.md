@@ -10,7 +10,7 @@ See https://github.com/nddipiazza/SSO-Cookie-Fetcher/blob/master/input.json for 
 ## Options:
 
  - `--url`                 required = true, desc = Starting URL
- - `--proxy`               required = false, desc = Proxy server in <host>:<args> format", default = NULL
+ - `--proxy`               required = false, desc = Proxy server in `<host>:<args>` format", default = NULL
  - `--screenshots`        required = false, desc = Save screenshots of each web form as sso process proceeds default = false
  - `--stopAfterAttempt`    required = false, desc = Stop retrying to get sso cookies after this many failed attempts, default = 5
  - `--attemptTimeLimiter`  required = false, desc = Limit attempts to this many seconds, default = 5 * 60 seconds
