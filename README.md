@@ -5,7 +5,7 @@ See https://github.com/nddipiazza/SSO-Cookie-Fetcher/blob/master/input.json for 
 
 # Running
 
-`java -jar sso-cookie-fetcher.jar --url http://your-login-page.com [options] < cat /path/to/input.json`
+`cat /path/to/input.json | java -jar sso-cookie-fetcher.jar --url http://your-login-page.com [options]`
 
 ## Options:
 
